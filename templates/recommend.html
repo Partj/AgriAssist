@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h2 class="fw-bold serif-title mb-4">AI Crop Intelligence</h2>
+        <div class="card p-5 mb-4 border-0">
+            <form action="/recommend" method="POST" class="row g-4">
+                <div class="col-md-12">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Region</label>
+                    <input type="text" name="city" class="form-control bg-light border-0 rounded-3 py-2" value="{{ current_user.city }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Nitrogen</label>
+                    <input type="number" step="0.1" name="nitrogen" class="form-control bg-light border-0 rounded-3 py-2" value="{{ current_user.n_level }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Phosphorus</label>
+                    <input type="number" step="0.1" name="phosphorus" class="form-control bg-light border-0 rounded-3 py-2" value="{{ current_user.p_level }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Potassium</label>
+                    <input type="number" step="0.1" name="potassium" class="form-control bg-light border-0 rounded-3 py-2" value="{{ current_user.k_level }}">
+                </div>
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-primary-custom w-100 py-3 rounded-4 fs-5 serif-title">Generate Report</button>
+                </div>
+            </form>
+        </div>
+
+        {% if result %}
+        <div class="card p-5" style="background-color: var(--sidebar-bg); color: white;">
+            <h3 class="serif-titled fw-bold mb-4">Prediction Results</h3>
+            {% for crop in result.top_crops %}
+            <div class="mb-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fs-5">{{ crop.name }}</span>
+                    <span class="text-accent">{{ crop.confidence }}% Match</span>
+                </div>
+                <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.1);">
+                    <div class="progress-bar" style="background-color: var(--primary); width: {{ crop.confidence }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

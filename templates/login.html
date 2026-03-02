@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 90vh;">
+    <div class="col-md-4">
+        <div class="card p-5 shadow-lg">
+            <h2 class="serif-title fw-bold text-center mb-1">AgriAssist</h2>
+            <p class="text-muted text-center small mb-5">Sign in to your workspace</p>
+            
+            <form action="/login" method="POST">
+                <input type="text" name="phone" class="form-control bg-light border-0 rounded-3 py-3 mb-3" placeholder="Phone Number" required>
+                <input type="password" name="password" class="form-control bg-light border-0 rounded-3 py-3 mb-4" placeholder="Password" required>
+                <button type="submit" class="btn btn-primary-custom w-100 py-3 rounded-4">Enter Dashboard</button>
+            </form>
+            <p class="text-center mt-4 small"><a href="/register" class="text-muted text-decoration-none">Create an account</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

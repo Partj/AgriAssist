@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold serif-title mb-1">Government Schemes</h2>
+        <p class="text-muted small">Verified portals for financial assistance.</p>
+    </div>
+    
+    <div class="col-md-4">
+        <form action="/schemes" method="GET" class="input-group">
+            <input type="text" name="search" class="form-control bg-white border-0 py-2 shadow-sm rounded-start-pill ps-4" placeholder="Search schemes..." value="{{ search_query }}">
+            <button class="btn btn-primary-custom rounded-end-pill px-4" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+        {% if search_query %}
+            <div class="text-end mt-1"><a href="/schemes" class="text-muted small text-decoration-none">Clear search</a></div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for scheme in schemes %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 p-4 border-0 d-flex flex-column" style="background-color: #ffffff;">
+            <div class="mb-3">
+                <div class="d-inline-block p-2 rounded-3 mb-3" style="background-color: var(--secondary); color: var(--sidebar-bg);">
+                    <i class="fa-solid fa-landmark"></i>
+                </div>
+                <h5 class="serif-title fw-bold mb-2">{{ scheme.name }}</h5>
+                <p class="text-muted small mb-0">{{ scheme.description }}</p>
+            </div>
+            <div class="mt-auto pt-3">
+                <a href="{{ scheme.link }}" target="_blank" class="btn w-100 rounded-3 fw-bold" style="background-color: var(--bg-color); color: var(--primary);">
+                    Visit Portal <i class="fa-solid fa-arrow-up-right-from-square ms-2 small"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">No schemes found matching your search.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
