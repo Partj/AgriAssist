@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -8,7 +9,15 @@ import pandas as pd
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///agriassist.db'
+# Fetch the cloud database URL if available, otherwise use local SQLite
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///agriassist.db')
+
+# SQLAlchemy requires 'postgresql://', but some cloud providers give 'postgres://'. This fixes that crash.
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'a_very_secret_key_for_security'
 db = SQLAlchemy(app)
