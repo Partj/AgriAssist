@@ -1,3 +1,7 @@
+app = Flask(__name__)
+# This line is for Vercel to recognize the entry point
+app.debug = False
+
 import os
 from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -303,5 +307,3 @@ with app.app_context():
 if __name__ == "__main__":
     # Get the port from the environment (Render sets this) or default to 5000 for local testing
     port = int(os.environ.get("PORT", 5000))
-    # In production, we don't use debug=True for security and performance
-    app.run(host='0.0.0.0', port=port)
