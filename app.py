@@ -301,4 +301,7 @@ with app.app_context():
         db.session.commit()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Get the port from the environment (Render sets this) or default to 5000 for local testing
+    port = int(os.environ.get("PORT", 5000))
+    # In production, we don't use debug=True for security and performance
+    app.run(host='0.0.0.0', port=port)
