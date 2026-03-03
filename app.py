@@ -65,19 +65,21 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# ==========================================
-# SERVERLESS DATABASE INITIALIZATION
-# This forces Vercel to create the Supabase tables 
-# immediately when the app wakes up!
-# ==========================================
-with app.app_context():
-    db.create_all()
+
 
 
 # --- HELPER FUNCTIONS ---
 def get_weather_data(city_name):
     # Mock weather for demo stability, or use an API like OpenWeather
     return 28.0, 85.0, 6.5, 120.0 # temp, hum, ph, rain
+
+@app.route("/setup-db")
+def setup_db():
+    try:
+        db.create_all()
+        return "Database tables created successfully! You can now go to /register."
+    except Exception as e:
+        return f"Database creation failed: {str(e)}"
 
 # --- ROUTES ---
 
