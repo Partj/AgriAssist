@@ -86,18 +86,30 @@ def setup_db():
 @app.route("/")
 @login_required
 def home():
+    # 1. Get database records
     user_crops = MyCrop.query.filter_by(user_id=current_user.id).all()
     recent_preds = Prediction.query.filter_by(user_id=current_user.id).order_by(Prediction.timestamp.desc()).limit(4).all()
     
-    # NEW: Create the stats dictionary that index.html is looking for
+    # 2. Package the stats data
     stats = {
-        "season": "Kharif", # You can change this to Rabi, Zaid, etc.
+        "season": "Kharif", 
         "active_crops": len(user_crops)
     }
 
-    # NEW: Add stats=stats to the render_template
-    return render_template("index.html", crops=user_crops, predictions=recent_preds, stats=stats)
+    # 3. Package the weather data using your helper function
+    temp, hum, ph, rain = get_weather_data(current_user.city)
+    weather = {
+        "temperature": temp,
+        "humidity": hum,
+        "rainfall": rain
+    }
 
+    # 4. Deliver ALL variables to the HTML template
+    return render_template("index.html", 
+                           crops=user_crops, 
+                           predictions=recent_preds, 
+                           stats=stats, 
+                           weather=weather)
 # --- THE MICROSERVICE AI ROUTES ---
 
 @app.route("/recommend", methods=["GET", "POST"])
