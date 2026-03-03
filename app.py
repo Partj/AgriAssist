@@ -70,6 +70,10 @@ def get_weather_data(city_name):
     # Mock weather for demo stability, or use OpenMeteo API as before
     return 28.0, 85.0, 6.5, 120.0 # temp, hum, ph, rain
 
+# Force table creation in serverless environments
+with app.app_context():
+    db.create_all()
+
 # --- ROUTES ---
 
 @app.route("/")
