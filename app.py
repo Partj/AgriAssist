@@ -10,11 +10,11 @@ app = Flask(__name__)
 
 # --- CONFIGURATION ---
 # Replace with your actual Hugging Face API URL
-HF_API_URL = "https://yourusername-agriassist-api.hf.space" 
+HF_API_URL = "https://parth8080-agriassist-api.hf.space" 
 
 # Database logic: Use Supabase in production, SQLite for local testing
-db_url = os.environ.get('DATABASE_URL', 'sqlite:///agriassist.db')
-if db_url.startswith("postgres://"):
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
