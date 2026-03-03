@@ -88,8 +88,15 @@ def setup_db():
 def home():
     user_crops = MyCrop.query.filter_by(user_id=current_user.id).all()
     recent_preds = Prediction.query.filter_by(user_id=current_user.id).order_by(Prediction.timestamp.desc()).limit(4).all()
-    return render_template("index.html", crops=user_crops, predictions=recent_preds)
+    
+    # NEW: Create the stats dictionary that index.html is looking for
+    stats = {
+        "season": "Kharif", # You can change this to Rabi, Zaid, etc.
+        "active_crops": len(user_crops)
+    }
 
+    # NEW: Add stats=stats to the render_template
+    return render_template("index.html", crops=user_crops, predictions=recent_preds, stats=stats)
 
 # --- THE MICROSERVICE AI ROUTES ---
 
