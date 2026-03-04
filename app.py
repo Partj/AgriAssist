@@ -155,7 +155,8 @@ def recommend():
                 db.session.commit()
             result = {"top_crops": top_crops}
         except Exception as e:
-            flash("AI Service is warming up. Please wait 30 seconds and try again.")
+            db.session.rollback() # <--- ADD THIS LINE FIRST
+            flash("AI Service is warming up or encountered an error.")
             print(f"API Error: {e}")
 
     return render_template("recommend.html", result=result)
@@ -185,7 +186,8 @@ def predict_yield():
             db.session.commit()
             result = {"yield": predicted_yield}
         except Exception as e:
-            flash("AI Service Error or waking up.")
+            db.session.rollback() # <--- ADD THIS LINE FIRST
+            flash("AI Service is warming up or encountered an error.")
             print(f"API Error: {e}")
 
     return render_template("yield.html", result=result)
