@@ -228,12 +228,21 @@ def register():
 @login_required
 def profile():
     if request.method == "POST":
-        current_user.n_level = float(request.form.get("n_level"))
-        current_user.p_level = float(request.form.get("p_level"))
-        current_user.k_level = float(request.form.get("k_level"))
-        current_user.city = request.form.get("city")
-        db.session.commit()
-        flash("Profile Updated Successfully")
+        # Check if this is the profile update form by looking for 'n_level'
+        n_val = request.form.get("n_level")
+        
+        if n_val is not None and n_val.strip() != "":
+            # Safely convert to float, falling back to 0.0 if empty
+            current_user.n_level = float(n_val)
+            current_user.p_level = float(request.form.get("p_level") or 0.0)
+            current_user.k_level = float(request.form.get("k_level") or 0.0)
+            current_user.city = request.form.get("city", current_user.city)
+            
+            db.session.commit()
+            flash("Profile Updated Successfully")
+        else:
+            flash("Invalid form submission or missing NPK data.")
+            
     return render_template("profile.html")
 
 @app.route("/logout")
@@ -245,21 +254,23 @@ def logout():
 @app.route("/add_crop", methods=["POST"])
 @login_required
 def add_crop():
-    try:
-        crop_name = request.form.get("crop_name")
-        # Force the acres to be a float so the database doesn't reject it
-        acres = float(request.form.get("acres", 0)) 
+    crop_name = request.form.get("crop_name")
+    acres_val = request.form.get("acres")
+    
+    if crop_name and acres_val:
+        try:
+            acres = float(acres_val)
+            new_crop = MyCrop(crop_name=crop_name, acres=acres, user_id=current_user.id)
+            db.session.add(new_crop)
+            db.session.commit()
+            flash(f"Successfully added {crop_name} to your active crops!")
+        except ValueError:
+            flash("Acres must be a valid number.")
+    else:
+        flash("Please provide both crop name and acres.")
         
-        new_crop = MyCrop(crop_name=crop_name, acres=acres, user_id=current_user.id)
-        db.session.add(new_crop)
-        db.session.commit()
-        flash("Crop added successfully!")
-    except Exception as e:
-        flash("Error adding crop. Please check your inputs.")
-        print(f"Database Error: {e}")
-        
+    # Redirect back to the page where the form was submitted (e.g., home)
     return redirect(url_for('home'))
-
 # Render is a real server, so we can do this normally!
 with app.app_context():
     db.create_all()
