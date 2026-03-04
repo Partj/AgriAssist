@@ -133,19 +133,17 @@ def scheme():
 def recommend():
     result = None
     if request.method == "POST":
-        n = float(request.form.get("nitrogen"))
-        p = float(request.form.get("phosphorus"))
-        k = float(request.form.get("potassium"))
-        city = request.form.get("city")
-        temp, hum, ph, rain = get_weather_data(city)
-
-        # Send to Hugging Face
-        payload = {"features": [n, p, k, temp, hum, ph, rain]}
         try:
+            # ... (your existing data gathering code) ...
+            
             response = requests.post(f"{HF_API_URL}/predict_crop", json=payload, timeout=15)
-            top_crops = response.json().get('result', [])
+            data = response.json()
+            
+            # Check if 'result' exists in what Hugging Face sent back
+            top_crops = data.get('result')
             
             if top_crops:
+                # Success!
                 new_pred = Prediction(
                     user_id=current_user.id, 
                     pred_type="Crop Recommendation", 
@@ -153,11 +151,15 @@ def recommend():
                 )
                 db.session.add(new_pred)
                 db.session.commit()
-            result = {"top_crops": top_crops}
+                result = {"top_crops": top_crops}
+            else:
+                # Handle API-side errors (like the one sent in Step 1)
+                flash(f"AI Error: {data.get('error', 'Unknown response format')}")
+                
         except Exception as e:
-            db.session.rollback() # <--- ADD THIS LINE FIRST
-            flash("AI Service is warming up or encountered an error.")
-            print(f"API Error: {e}")
+            db.session.rollback()
+            flash("AI Service is warming up. Try again in 10 seconds.")
+            print(f"Render Side Error: {e}")
 
     return render_template("recommend.html", result=result)
 
@@ -166,32 +168,39 @@ def recommend():
 def predict_yield():
     result = None
     if request.method == "POST":
-        # In a real app, this comes from a dropdown matching your label encoder
-        crop_num = int(request.form.get("crop_numeric", 22)) 
-        n, p, k = current_user.n_level, current_user.p_level, current_user.k_level
-        temp, hum, ph, rain = get_weather_data(current_user.city)
-
-        # Send to Hugging Face
-        payload = {"features": [n, p, k, temp, hum, rain, crop_num]}
         try:
-            response = requests.post(f"{HF_API_URL}/predict_yield", json=payload, timeout=15)
-            predicted_yield = response.json().get('yield')
+            crop_num = int(request.form.get("crop_numeric", 22)) 
+            n, p, k = current_user.n_level, current_user.p_level, current_user.k_level
+            temp, hum, ph, rain = get_weather_data(current_user.city)
+
+            # --- CRUCIAL: Match the exact features your model was trained on ---
+            # Most yield models use: [N, P, K, Temperature, Humidity, pH, Rainfall]
+            # or sometimes they need the Crop Name too. 
+            payload = {"features": [n, p, k, temp, hum, ph, rain]} 
             
-            new_pred = Prediction(
-                user_id=current_user.id, 
-                pred_type="Yield Forecast", 
-                result_text=f"Predicted Yield: {predicted_yield} tonnes/hectare"
-            )
-            db.session.add(new_pred)
-            db.session.commit()
-            result = {"yield": predicted_yield}
+            response = requests.post(f"{HF_API_URL}/predict_yield", json=payload, timeout=15)
+            data = response.json()
+
+            if "error" in data:
+                flash(f"AI Model Error: {data['error']}")
+                db.session.rollback()
+            else:
+                predicted_yield = data.get('yield', 0)
+                new_pred = Prediction(
+                    user_id=current_user.id, 
+                    pred_type="Yield Forecast", 
+                    result_text=f"Predicted Yield: {predicted_yield} tonnes/hectare"
+                )
+                db.session.add(new_pred)
+                db.session.commit()
+                result = {"yield": predicted_yield}
+
         except Exception as e:
-            db.session.rollback() # <--- ADD THIS LINE FIRST
-            flash("AI Service is warming up or encountered an error.")
-            print(f"API Error: {e}")
+            db.session.rollback()
+            flash("Yield service is currently unavailable.")
+            print(f"Yield Route Error: {e}")
 
     return render_template("yield.html", result=result)
-
 
 # --- AUTH & PROFILE ROUTES ---
 @app.route("/login", methods=["GET", "POST"])
