@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 # --- CONFIGURATION ---
 # Replace with your actual Hugging Face API URL once it is running
-HF_API_URL = "https://yourusername-agriassist-api.hf.space" 
+HF_API_URL = "https://parth8080-agriassist-api.hf.space" 
 
 # Database logic: Use Supabase in production, SQLite for local testing
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///agriassist.db')
@@ -111,6 +111,22 @@ def home():
                            stats=stats, 
                            weather=weather)
 # --- THE MICROSERVICE AI ROUTES ---
+@app.route("/khata")
+@login_required
+def khata():
+    # Fetch user's khata entries from the database
+    entries = Khata.query.filter_by(user_id=current_user.id).all()
+    return render_template("khata.html", entries=entries)
+
+@app.route("/fertilizers")
+@login_required
+def fertilizers():
+    return render_template("fertilizers.html")
+
+@app.route("/scheme")
+@login_required
+def scheme():
+    return render_template("scheme.html")
 
 @app.route("/recommend", methods=["GET", "POST"])
 @login_required
@@ -225,6 +241,24 @@ def profile():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route("/add_crop", methods=["POST"])
+@login_required
+def add_crop():
+    try:
+        crop_name = request.form.get("crop_name")
+        # Force the acres to be a float so the database doesn't reject it
+        acres = float(request.form.get("acres", 0)) 
+        
+        new_crop = MyCrop(crop_name=crop_name, acres=acres, user_id=current_user.id)
+        db.session.add(new_crop)
+        db.session.commit()
+        flash("Crop added successfully!")
+    except Exception as e:
+        flash("Error adding crop. Please check your inputs.")
+        print(f"Database Error: {e}")
+        
+    return redirect(url_for('home'))
 
 # Render is a real server, so we can do this normally!
 with app.app_context():
